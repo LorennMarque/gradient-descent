@@ -1,0 +1,92 @@
+---
+title: "Modelado de Precios con la base de Properati"
+author: "Andres Farall"
+date: "29 de Septiembre de 2021"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+  html_notebook:
+    theme: lumen
+    toc: yes
+    toc_float: yes
+subtitle: Laboratorio de Datos
+---
+
+### Carga de Librerías, Lectura del dataset y su estructura
+
+```{r}
+# leo el archivo ar_properties 
+library(tidyverse) # entorno tidy
+library(dplyr) # manejo de datos
+library(GGally) # scatterplots multiples
+library(rgl) # para graficos 3D
+options(rgl.printRglwidget = TRUE)
+data <- read_csv("ar_properties.csv")
+```
+
+### Aplicando filtros
+
+```{r}
+data <- data %>% 
+                   # Me quedo con los que pertenecen a Argentina, Capital Federal y Boedo
+            filter(l1 == "Argentina", 
+                   l2 == "Capital Federal",
+                   l3=="Boedo",
+                   # cuyo precio este en dolares 
+                   currency == "USD", 
+                   # propiedad tipo Casa
+                   property_type %in% c("Casa"),
+                   # operaciones de venta
+                   operation_type == "Venta") %>% 
+            dplyr::select(id, l3, surface_total, surface_covered, price) %>% mutate(Precio=price,Sup=surface_covered,Fondo=surface_total-surface_covered) %>% dplyr::select(Sup,Fondo,Precio) %>%  filter(Fondo>=0) %>% na.omit()
+datos1d
+
+```
+
+# Trabajo Manual
+
+```{r}
+plot(data$Sup, data$Precio, col = "blue", pch = 20)
+```
+
+```{r}
+model <- lm(data$Sup ~ data$Precio)
+coef(model)
+```
+
+## Planteo de formula
+
+$
+Precio(x) = Sup * alpha + Fondo * Beta + Mu
+$
+
+```{r}
+mu = mean(datos1d$Precio)
+
+precio <- function(sup, alpha, fondo, beta) {
+  return(sup * alpha + fondo * beta + mu)
+}
+```
+
+## Función de costo
+
+```{r}
+# Define the loss function (Sum of Squared Errors)
+loss_function <- function(params, sup, fondo, actual) {
+  # Extract parameters alpha and beta
+  alpha <- params[1]
+  beta <- params[2]
+  
+  # Predicted values
+  predicted <- precio(sup, alpha, fondo, beta)
+  
+  # Calculate SSE (Sum of Squared Errors)
+  sse <- sum((actual - predicted)^2)
+  return(sse)
+}
+```
+
+Example Usage
+
+##  
