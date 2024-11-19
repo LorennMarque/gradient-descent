@@ -1,2 +1,2 @@
 # gradient-descent
-t
+chi^2
