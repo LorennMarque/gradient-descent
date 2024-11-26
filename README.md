@@ -1,2 +1,3 @@
 # gradient-descent
-t
+chi^2
+di pancho
