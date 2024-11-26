@@ -40,7 +40,6 @@ data <- data %>%
                    # operaciones de venta
                    operation_type == "Venta") %>% 
             dplyr::select(id, l3, surface_total, surface_covered, price) %>% mutate(Precio=price,Sup=surface_covered,Fondo=surface_total-surface_covered) %>% dplyr::select(Sup,Fondo,Precio) %>%  filter(Fondo>=0) %>% na.omit()
-datos1d
 
 ```
 
