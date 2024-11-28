@@ -1,7 +1,7 @@
 # Análisis de Modelos Lineales y Algoritmos de Optimización en Datos de Propiedades
 #### Fecha: Noviembre 28, 2024
 
----
+
 Este repositorio contiene el trabajo final del curso de Introducción a los Problemas Básicos de Administración y Economía, donde analizamos la relación entre la superficie cubierta y el precio de venta de propiedades en el barrio de Boedo, Ciudad de Buenos Aires. Utilizamos modelos lineales y algoritmos de optimización para ajustar los datos y evaluar su efectividad.
 
 ## Tabla de Contenidos  
@@ -13,12 +13,12 @@ Este repositorio contiene el trabajo final del curso de Introducción a los Prob
 6. [Autores](#autores)  
 7. [Licencia](#licencia)  
 
----
+
 
 ## Introducción  
 El objetivo de este proyecto es explorar el uso de métodos de optimización y modelos lineales para predecir el precio de venta de propiedades. Trabajamos con datos reales provistos por Properati y comparamos la efectividad de diferentes técnicas de ajuste, como Luus-Jaakola, gradiente descendente y mínimos cuadrados ordinarios (lm).  
 
----
+
 
 ## Metodología  
 1. **Modelo Propuesto**:  
@@ -36,7 +36,7 @@ El objetivo de este proyecto es explorar el uso de métodos de optimización y m
    - Gradiente Descendente: Algoritmo iterativo basado en el gradiente de la función de pérdida.  
    - Mínimos Cuadrados Ordinarios (lm): Solución analítica como referencia.  
 
----
+
 
 ## Resultados  
 - Los tres métodos convergieron a soluciones similares, demostrando la efectividad de las técnicas de optimización para funciones convexas.  
@@ -54,7 +54,7 @@ El objetivo de este proyecto es explorar el uso de métodos de optimización y m
 - Los algoritmos implementados son efectivos y producen resultados consistentes con los métodos analíticos.  
 - Se recomienda incluir más variables para mejorar el modelo, como fondo, cantidad de habitaciones y características del barrio.  
 
----
+
 
 ### Autores:
 - Lorenzo Marquesini
@@ -62,10 +62,9 @@ El objetivo de este proyecto es explorar el uso de métodos de optimización y m
 - Juan Cruz Chierasco
 - Marco Di Sario
 
----
+
 
 
 ## Licencia  
 Este proyecto se distribuye bajo la Licencia MIT.  
 
---- 
