@@ -9,9 +9,8 @@ Este repositorio contiene el trabajo final del curso de Introducción a los Prob
 2. [Metodología](#metodología)  
 3. [Resultados](#resultados)  
 4. [Conclusiones](#conclusiones)  
-5. [Estructura del Repositorio](#estructura-del-repositorio)  
-6. [Autores](#autores)  
-7. [Licencia](#licencia)  
+5. [Autores](#autores)  
+6. [Licencia](#licencia)  
 
 
 
