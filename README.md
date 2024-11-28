@@ -57,7 +57,7 @@ El objetivo de este proyecto es explorar el uso de métodos de optimización y m
 
 ### Autores:
 - Lorenzo Marquesini
-- Agustín Orue
+- Agustín Orué
 - Juan Cruz Chierasco
 - Marco Di Sario
 
