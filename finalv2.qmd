@@ -1,31 +1,23 @@
 ---
 title: "Análisis de Modelos Lineales y Algoritmos de Optimización en Datos de Propiedades"
-author: "Grupo"
-date: "r Sys.Date()"
-output:
-  pdf_document:
+author: "Lorenzo Marquesini, Agustín Orue, Juan Cruz Chierasco, Marco Di Sario"
+date: "`r Sys.Date()`"
+format:
+  html:
+    theme: flatly
     toc: true
-    toc_depth: 2
-    number_sections: true
-    fig_caption: true
-    includes:
-      in_header: preamble.tex
-toc: true 
-theme: flatly
-toc-location: left 
-number-sections: true 
-code-tools: true # Mostrar herramientas de copiado en los bloques de código 
-smooth-scroll: true # Habilitar desplazamiento suave al navegar por el índice 
-fig-align: center # Alinear las figuras al centro 
-toc-depth: 3 # Profundidad máxima del índice 
-fontsize: 12pt
-geometry: margin=1in
+    toc-depth: 3
+    toc-location: left
+    number-sections: true
+    code-fold: true
+    code-tools: true
+    smooth-scroll: true
+    fig-align: center
+fontsize: 16pt
 ---
 
-
 ```{r echo=FALSE, output = FALSE, warning = FALSE, message = FALSE}
-
-# Carga de Librerías
+# Carga de Librerías}
 library(tidyverse)
 library(dplyr)
 library(plotly)
@@ -51,18 +43,19 @@ data <- data %>%
   filter(Fondo >= 0) %>%
   na.omit()
 
+options(scipen=999)
 ```
 
 ## Resumen
 
-En este trabajo analizamos el uso de modelos lineales y algoritmos de optimización aplicados a un conjunto de datos de propiedades inmobiliarias del barrio de Boedo, en la Ciudad de Buenos Aires. Se busca entender cómo variables como la superficie cubierta (Sup) y el fondo (Fondo) influyen en el precio (Precio) de venta de las casas. Utilizaremos métodos de optimización como Luus-Jaakola y gradiente descendente para ajustar un modelo lineal a los datos.
+En este trabajo analizamos el uso de modelos lineales y algoritmos de optimización aplicados a un conjunto de datos de propiedades inmobiliarias del barrio de Boedo, en la Ciudad de Buenos Aires. Se busca entender cómo la superficie cubierta (Sup) influye en el precio (Precio) de venta de las casas. Utilizaremos métodos de optimización como Luus-Jaakola y gradiente descendente para ajustar un modelo lineal a los datos.
 
 ## Introduccion
 
 Utilizaremos un subconjunto del dataset real de publicaciones digitales de inmuebles, provisto en forma libre por Properati [\[1\]](https://www.properati.com.ar/ "properati.com.ar").
 
 ```{r}
-head(data)
+head(as.data.frame(data))
 ```
 
 En este caso contamos con 68 casas del barrio de Boedo, con precios en dólares que van desde los u\$s 90000 hasta los u\$s 600000. Se plantea un resumen de estos datos en el próximo gráfico.
@@ -93,7 +86,7 @@ $$
 h_0 = \mu + \alpha * Sup
 $$
 
-Donde: \* $h_0$ es la predicción del precio. \* $\mu$ es el término independiente. \* $\alpha$ es el coeficiente que multiplica a la superficie cubierta (Sup).
+Donde: - $h_0$ es la predicción del precio. - $\mu$ es el término independiente. - $\alpha$ es el coeficiente que multiplica a la superficie cubierta (Sup).
 
 El modelo recién planteado puede pensarse como una función, que dados los parámetros θ = (µ, α), asigna un precio a una combinación cualquiera de valores de superficie. Entonces
 
@@ -109,17 +102,17 @@ $$
 \frac{1}{68} \sum_{i=1}^{68} (Precio_i - (\mu + \alpha * Sup))^2 
 $$
 
-Donde: \* $n$ es el número de observaciones (en este caso, 68). \* $Precio_i$ es el precio real de la observación $i$. \* $Sup_i$ es la superficie cubierta de la observación $i$.
+Donde: - $n$ es el número de observaciones (en este caso, 68). - $Precio_i$ es el precio real de la observación $i$. - $Sup_i$ es la superficie cubierta de la observación $i$.
 
 #### Funciones de perdida Alternativas
 
 Además del MSE, existen otras funciones de pérdida que pueden ser utilizadas, cada una con sus pros y contras:
 
-| Función de Pérdida           | Pros                                        | Contras                                            |
+| Función de Pérdida | Pros | Contras |
 |------------------|-------------------------|-----------------------------|
-| Error Absoluto Medio (MAE)   | Menos sensible a valores atípicos           | Puede ser menos eficiente en términos estadísticos |
-| Error Cuadrático Medio (MSE) | Penaliza más los errores grandes            | Sensible a valores atípicos                        |
-| Error Logarítmico            | Útil para datos con crecimiento exponencial | No está definido para valores cero o negativos     |
+| Error Absoluto Medio (MAE) | Menos sensible a valores atípicos | Puede ser menos eficiente en términos estadísticos |
+| Error Cuadrático Medio (MSE) | Penaliza más los errores grandes | Sensible a valores atípicos |
+| Error Logarítmico | Útil para datos con crecimiento exponencial | No está definido para valores cero o negativos |
 
 ### Optimización - "Etapa de entrenamiento"
 
@@ -138,22 +131,30 @@ Vamos a aplicar dos mecanismos básicos de optimización:
 
 El método Luus-Jaakola es un algoritmo de optimización estocástica que no requiere información sobre el gradiente de la función objetivo. Consiste en:
 
-1. Inicializar los parámetros con valores arbitrarios.
-2. En cada iteración, generar nuevos candidatos alrededor de los mejores parámetros actuales, dentro de una región de búsqueda que se va reduciendo.
-3. Si un nuevo candidato mejora la función objetivo, se actualizan los parámetros.
-4. Repetir hasta convergencia o hasta alcanzar un número máximo de iteraciones.
+1.  Inicializar los parámetros con valores arbitrarios.
+2.  En cada iteración, generar nuevos candidatos alrededor de los mejores parámetros actuales, dentro de una región de búsqueda que se va reduciendo.
+3.  Si un nuevo candidato mejora la función objetivo, se actualizan los parámetros.
+4.  Repetir hasta convergencia o hasta alcanzar un número máximo de iteraciones.
 
 Implementamos el método Luus-Jaakola de la siguiente manera:
 
 ```{r}
+# Estandarizar variables
+mean_sup <- mean(data$Sup)
+sd_sup <- sd(data$Sup)
+mean_precio <- mean(data$Precio)
+sd_precio <- sd(data$Precio)
+
+data$Sup_scaled <- (data$Sup - mean_sup) / sd_sup
+data$Precio_scaled <- (data$Precio - mean_precio) / sd_precio
 
 # Inicialización
 set.seed(123)
-mu <- runif(1, min = min(data$Precio), max = max(data$Precio))
-alpha <- runif(1, min = -1000, max = 1000)
+mu_lj <- 0
+alpha_lj <- 0
 best_loss <- Inf
-delta <- c(1e5, 1e3)  # Tamaño inicial de la región de búsqueda
-n_iter <- 1000
+delta <- c(1, 1)  # Tamaño inicial de la región de búsqueda
+n_iter <- 15
 
 # Vectores para almacenar la evolución
 mu_history <- numeric(n_iter)
@@ -162,17 +163,17 @@ loss_history <- numeric(n_iter)
 
 for (i in 1:n_iter) {
   # Generar nuevos candidatos
-  mu_candidate <- mu + runif(1, -delta[1], delta[1])
-  alpha_candidate <- alpha + runif(1, -delta[2], delta[2])
+  mu_candidate <- mu_lj + runif(1, -delta[1], delta[1])
+  alpha_candidate <- alpha_lj + runif(1, -delta[2], delta[2])
   
-  # Calcular pérdida
-  preds <- mu_candidate + alpha_candidate * data$Sup
-  loss <- mean((data$Precio - preds)^2)
+  # Calcular pérdida en escala estandarizada
+  preds_scaled <- mu_candidate + alpha_candidate * data$Sup_scaled
+  loss <- mean((data$Precio_scaled - preds_scaled)^2)
   
   # Actualizar si mejora
   if (loss < best_loss) {
-    mu <- mu_candidate
-    alpha <- alpha_candidate
+    mu_lj <- mu_candidate
+    alpha_lj <- alpha_candidate
     best_loss <- loss
     # Reducir región de búsqueda
     delta <- delta * 0.95
@@ -182,10 +183,19 @@ for (i in 1:n_iter) {
   }
   
   # Almacenar historia
-  mu_history[i] <- mu
-  alpha_history[i] <- alpha
+  mu_history[i] <- mu_lj
+  alpha_history[i] <- alpha_lj
   loss_history[i] <- best_loss
 }
+
+# Convertir parámetros a escala original
+alpha_lj <- alpha_lj * (sd_precio / sd_sup)
+mu_lj <- (mu_lj * sd_precio + mean_precio) - alpha_lj * mean_sup
+
+# Almacenar historia de parámetros en escala original para visualización
+alpha_history <- alpha_history * (sd_precio / sd_sup)
+mu_history <- (mu_history * sd_precio + mean_precio) - alpha_history * mean_sup
+
 ```
 
 Empecemos viendo la evolución de la cantidad de iteraciones en función de la cantidad de actualizaciones (modificación del óptimo hasta ese momento) a lo largo del proceso.
@@ -199,57 +209,83 @@ plot_ly(x = 1:n_iter, y = loss_history, type = 'scatter', mode = 'lines', name =
 
 El siguiente gráfico muestra la evolución de los mejores parámetros obtenidos a lo largo del proceso
 
-```{r}
+::: panel-tabset
+## Evolución de Mu
+
+```{r, warning = FALSE}
 df_params <- data.frame(
   Iteración = 1:n_iter,
   Mu = mu_history,
   Alpha = alpha_history
 )
 
-plot_ly(df_params, x = ~Iteración) %>%
-  add_trace(y = ~Mu, name = 'Mu', type = 'scatter', mode = 'lines') %>%
-  add_trace(y = ~Alpha, name = 'Alpha', type = 'scatter', mode = 'lines', yaxis = "y2") %>%
-  layout(title = 'Evolución de los Parámetros con Luus-Jaakola',
-         yaxis = list(title = 'Mu'),
-         yaxis2 = list(title = 'Alpha', overlaying = 'y', side = 'right'),
-         xaxis = list(title = 'Iteración'))
+# Gráfico de la evolución de Mu
+plot_mu <- plot_ly(df_params, x = ~Iteración, y = ~Mu, type = 'scatter', mode = 'lines', name = 'Mu') %>%
+  layout(title = 'Evolución de Mu con Luus-Jaakola',
+         xaxis = list(title = 'Iteración'),
+         yaxis = list(title = 'Mu'))
+
+# Gráfico de la evolución de Alpha
+plot_alpha <- plot_ly(df_params, x = ~Iteración, y = ~Alpha, type = 'scatter', mode = 'lines', color= "orange", name = 'Alpha') %>%
+  layout(title = 'Evolución de Alpha con Luus-Jaakola',
+         xaxis = list(title = 'Iteración'),
+         yaxis = list(title = 'Alpha'))
+
+# Mostrar los gráficos por separado
+plot_mu
 ```
+
+## Evolución de Alpha
+
+```{r, warning = FALSE}
+plot_alpha
+```
+:::
 
 Se ve claramente que la evolución de cada uno de los dos parámetros converge a un valor final, a los que podemos considerar como las estimaciones. Estos valores finales son:
 
-* $\mu =$ `r round(mu, 2)`
-* $\alpha =$ `r round(alpha, 2)`
-
+-   $\mu =$ `r mu_lj`
+-   $\alpha =$ `r alpha_lj`
 
 #### Gradiente Descendente
+
 El método del gradiente descendente consiste en actualizar los parámetros en la dirección opuesta al gradiente de la función de pérdida. El algoritmo es el siguiente:
 
-1. Inicializar los parámetros con valores aleatorios.
-2. Calcular el gradiente de la función de pérdida con respecto a los parámetros.
-3. Actualizar los parámetros en la dirección opuesta al gradiente.
-$$
-\theta_{t+1} = \theta_t - \lambda \nabla L
-$$ 
-Donde $\lambda$ es la tasa de aprendizaje (learning rate) y $\nabla L(\theta_t)$ es el gradiente de la función de pérdida $L$ con respecto a los parámetros $\theta$ en el paso $t$.
+1.  Inicializar los parámetros con valores aleatorios.
 
-4. Repetir hasta convergencia.
+2.  Calcular el gradiente de la función de pérdida con respecto a los parámetros.
+
+3.  Actualizar los parámetros en la dirección opuesta al gradiente. $$
+    \theta_{t+1} = \theta_t - \lambda \nabla L
+    $$ Donde $\lambda$ es la tasa de aprendizaje (learning rate) y $\nabla L(\theta_t)$ es el gradiente de la función de pérdida $L$ con respecto a los parámetros $\theta$ en el paso $t$.
+
+4.  Repetir hasta convergencia.
 
 > Convergencia: La convergencia se produce cuando un modelo ha alcanzado un estado en el que ya no mejora significativamente su rendimiento con más iteraciones o entrenamiento.
 
+Existen diferentes variantes del gradiente descendente: \* **Gradiente Descendente por Lotes (Batch Gradient Descent)**: Utiliza todo el conjunto de datos para calcular el gradiente en cada paso. Es estable pero puede ser lento en conjuntos de datos grandes.
 
-Existen diferentes variantes del gradiente descendente:
-* **Gradiente Descendente por Lotes (Batch Gradient Descent)**: Utiliza todo el conjunto de datos para calcular el gradiente en cada paso. Es estable pero puede ser lento en conjuntos de datos grandes.
+-   **Gradiente Descendente Estocástico (Stochastic Gradient Descent, SGD)**: Actualiza los parámetros usando una sola muestra a la vez. Es más rápido pero introduce ruido en la estimación del gradiente, lo que puede dificultar la convergencia.
 
-* **Gradiente Descendente Estocástico (Stochastic Gradient Descent, SGD)**: Actualiza los parámetros usando una sola muestra a la vez. Es más rápido pero introduce ruido en la estimación del gradiente, lo que puede dificultar la convergencia.
-
-* **Gradiente Descendente Mini-Batch**: Compromiso entre los dos anteriores. Usa un subconjunto (mini-batch) de muestras para calcular el gradiente en cada paso. Balancea eficiencia computacional y estabilidad en la convergencia.
+-   **Gradiente Descendente Mini-Batch**: Compromiso entre los dos anteriores. Usa un subconjunto (mini-batch) de muestras para calcular el gradiente en cada paso. Balancea eficiencia computacional y estabilidad en la convergencia.
 
 En este caso, implementaremos el gradiente descendente por lotes, utilizando todo el conjunto de datos en cada iteración.
+
 ```{r}
-# Inicialización
-mu_gd <- runif(1, min = min(data$Precio), max = max(data$Precio))
-alpha_gd <- runif(1, min = -1000, max = 1000)
-learning_rate <- 1e-7
+# Estandarizar variables
+mean_sup <- mean(data$Sup)
+sd_sup <- sd(data$Sup)
+mean_precio <- mean(data$Precio)
+sd_precio <- sd(data$Precio)
+
+data$Sup_scaled <- (data$Sup - mean_sup) / sd_sup
+data$Precio_scaled <- (data$Precio - mean_precio) / sd_precio
+
+# Inicialización de parámetros
+set.seed(123)
+mu_gd <- 0
+alpha_gd <- 0
+learning_rate <- 0.01
 n_iter_gd <- 1000
 
 # Vectores para almacenar la evolución
@@ -258,13 +294,13 @@ alpha_history_gd <- numeric(n_iter_gd)
 loss_history_gd <- numeric(n_iter_gd)
 
 for (i in 1:n_iter_gd) {
-  # Predicciones
-  preds <- mu_gd + alpha_gd * data$Sup
-  errors <- preds - data$Precio
+  # Predicciones usando variables escaladas
+  preds_scaled <- mu_gd + alpha_gd * data$Sup_scaled
+  errors <- preds_scaled - data$Precio_scaled
   
   # Calcular gradientes
   mu_grad <- (2 / nrow(data)) * sum(errors)
-  alpha_grad <- (2 / nrow(data)) * sum(errors * data$Sup)
+  alpha_grad <- (2 / nrow(data)) * sum(errors * data$Sup_scaled)
   
   # Actualizar parámetros
   mu_gd <- mu_gd - learning_rate * mu_grad
@@ -279,9 +315,17 @@ for (i in 1:n_iter_gd) {
   loss_history_gd[i] <- loss
 }
 
+# Convertir parámetros a escala original
+alpha_gd <- alpha_gd * (sd_precio / sd_sup)
+mu_gd <- (mu_gd * sd_precio + mean_precio) - alpha_gd * mean_sup
+
+# Almacenar historia de parámetros en escala original para visualización
+alpha_history_gd <- alpha_history_gd * (sd_precio / sd_sup)
+intercept_history_gd <- (mu_history_gd * sd_precio + mean_precio) - alpha_history_gd * mean_sup
 ```
 
 Visualizamos la evolución de la pérdida:
+
 ```{r}
 # Añadir puntos a cada iteración
 iterations <- 1:n_iter_gd
@@ -301,10 +345,11 @@ plot_ly(x = iterations, y = loss_history_gd, type = 'scatter', mode = 'lines+mar
          ))
 
 ```
+
 En el gráfico anterior, hemos agregado puntos en cada paso (iteración) para visualizar mejor cómo disminuye la pérdida a lo largo de las iteraciones. También hemos incluido una anotación que indica la pérdida mínima alcanzada.
 
-
 Visualizamos la evolución de los parámetros:
+
 ```{r}
 df_params_gd <- data.frame(
   Iteración = iterations,
@@ -355,44 +400,18 @@ loss_grid <- t(loss_grid)
 
 ```
 
-Luego, graficamos las líneas de nivel (contornos) de la función de pérdida y superponemos la trayectoria del gradiente descendente:
-
-```{r}
-# Graficar las líneas de nivel de la función de pérdida
-contour_plot <- plot_ly(x = mu_seq, y = alpha_seq, z = loss_grid, type = 'contour',
-                        colorscale = 'Viridis') %>%
-  layout(title = 'Contorno de la Función de Pérdida',
-         xaxis = list(title = 'Mu'),
-         yaxis = list(title = 'Alpha'))
-
-# Añadir la trayectoria del gradiente descendente
-trajectory <- data.frame(Mu = mu_history_gd, Alpha = alpha_history_gd, Loss = loss_history_gd)
-contour_plot <- contour_plot %>%
-  add_trace(data = trajectory, x = ~Mu, y = ~Alpha, type = 'scatter', mode = 'lines+markers',
-            line = list(color = 'red'), marker = list(size = 4, color = 'red'), name = 'Trayectoria GD')
-
-# Marcar el mínimo encontrado
-min_point <- data.frame(Mu = mu_history_gd[n_iter_gd], Alpha = alpha_history_gd[n_iter_gd])
-contour_plot <- contour_plot %>%
-  add_trace(data = min_point, x = ~Mu, y = ~Alpha, type = 'scatter', mode = 'markers',
-            marker = list(size = 8, color = 'green'), name = 'Mínimo Encontrado')
-
-contour_plot
-```
-
-En este gráfico, la función de pérdida se representa mediante líneas de nivel, con $\mu$ en el eje X y $\alpha$ en el eje Y. Las áreas más claras indican valores de pérdida menores. La trayectoria del gradiente descendente se muestra con puntos y líneas rojas, y el mínimo encontrado está marcado con un punto verde.
-
-
 Los valores finales obtenidos son:
-* $\mu =$ `r round(mu_gd, 2)`
-* $\alpha =$ `r round(alpha_gd, 2)`
+
+-   $\mu =$ `r round(mu_gd, 2)`
+-   $\alpha =$ `r round(alpha_gd, 2)`
 
 ## Resultados
+
 Comparando los resultados obtenidos con ambos métodos, observamos que convergen a valores similares. Para validar el modelo, podemos comparar las predicciones con los valores reales.
 
 ```{r}
 # Predicciones con los parámetros finales
-preds_lj <- mu + alpha * data$Sup
+preds_lj <- mu_lj + alpha_lj * data$Sup
 preds_gd <- mu_gd + alpha_gd * data$Sup
 
 # Gráfico de comparación
@@ -409,6 +428,7 @@ Podemos observar que el modelo lineal ajusta razonablemente bien los datos, capt
 Para validar y contrastar nuestros resultados, utilizaremos la función nativa lm() de R para ajustar un modelo lineal y comparar los coeficientes obtenidos.
 
 #### Ajuste del Modelo Lineal con lm()
+
 La función lm() en R realiza un ajuste de mínimos cuadrados ordinarios (OLS), proporcionando una solución analítica al problema de regresión lineal.
 
 ```{r}
@@ -419,31 +439,35 @@ summary(modelo_lm)
 
 El resumen del modelo proporciona los coeficientes estimados:
 
-* $\mu =$ `r round(coef(modelo_lm)[1], 2)`
-* $\alpha =$ `r round(coef(modelo_lm)[2], 2)`
+-   $\mu =$ `r round(coef(modelo_lm)[1], 2)`
+-   $\alpha =$ `r round(coef(modelo_lm)[2], 2)`
 
 Los valores son:
+
 ```{r}
+# Obtener los coeficientes del modelo lm
 mu_lm <- modelo_lm$coefficients[1]
 alpha_lm <- modelo_lm$coefficients[2]
-cat("Valores obtenidos con lm():\n")
-cat("mu =", round(mu_lm, 2), "\n")
-cat("alpha =", round(alpha_lm, 2), "\n")
+
+# Crear un data frame con los valores
+coeficientes_lm <- data.frame(
+  Parámetro = c("Mu", "Alpha"),
+  Valor = c(round(mu_lm, 2), round(alpha_lm, 2))
+)
+
+# Mostrar la tabla usando knitr::kable
+library(knitr)
+kable(coeficientes_lm, caption = "Valores obtenidos con lm()")
+
 ```
 
-#### Comparación de coeficientes
-Ahora, comparamos los coeficientes obtenidos con los diferentes métodos:
-
-TABLAAAA
-
-Podemos observar que los valores obtenidos con nuestros métodos de optimización numérica son muy cercanos a los obtenidos con la solución analítica de lm(), lo que valida la eficacia de los algoritmos implementados.
-
 #### Comparación de Predicciones
+
 Para visualizar el ajuste de los modelos, graficamos las predicciones obtenidas con cada método junto con los datos reales:
 
 ```{r}
 # Predicciones con los parámetros finales
-preds_lj <- mu + alpha * data$Sup
+preds_lj <- mu_lj + alpha_lj * data$Sup
 preds_gd <- mu_gd + alpha_gd * data$Sup
 preds_lm <- predict(modelo_lm, data)
 
@@ -458,33 +482,33 @@ plot_ly(data, x = ~Sup, y = ~Precio, type = 'scatter', mode = 'markers', name = 
          legend = list(x = 0.1, y = 0.9))
 ```
 
-En el gráfico anterior, las líneas representan las predicciones de cada método:
+<br> Como las tres líneas prácticamente se superponen, indican que todos los métodos proporcionan un ajuste muy similar. Destacamos que el método LM() y la optimización por gradiente descendente llegaron a exactamente el mismo resultado.
 
-* Luus-Jaakola: Línea roja continua.
-* Gradiente Descendente: Línea verde continua.
-* lm(): Línea azul discontinua.
-
-Podemos observar que las tres líneas prácticamente se superponen, indicando que todos los métodos proporcionan un ajuste muy similar.
-
-#### Evaluación de los Modelos
-Para cuantificar el rendimiento de cada modelo, calculamos el error cuadrático medio (MSE) de las predicciones:
-
-```{r}
+```{r echo = FALSE}
+# Calcular los MSE
 mse_lj <- mean((data$Precio - preds_lj)^2)
 mse_gd <- mean((data$Precio - preds_gd)^2)
 mse_lm <- mean((data$Precio - preds_lm)^2)
 
-# Mostrar los MSE
-cat("Error Cuadrático Medio (MSE) de cada método:\n")
-cat("Luus-Jaakola:", round(mse_lj, 2), "\n")
-cat("Gradiente Descendente:", round(mse_gd, 2), "\n")
-cat("lm():", round(mse_lm, 2), "\n")
+# Crear un data frame con los coeficientes obtenidos
+coeficientes <- data.frame(
+  Método = c("Luus-Jaakola", "Gradiente Descendente", "lm()"),
+  Mu = c(round(mu_lj, 2), round(mu_gd, 2), round(mu_lm, 2)),
+  Alpha = c(round(alpha_lj, 2), round(alpha_gd, 2), round(alpha_lm, 2)),
+  MSE = c(round(mse_lj, 2), round(mse_gd, 2), round(mse_lm, 2))
+)
 
+# Mostrar la tabla utilizando kable
+knitr::kable(coeficientes, caption = "Comparación de coeficientes obtenidos con diferentes métodos")
 ```
-Los valores de MSE obtenidos son muy similares, confirmando que todos los métodos logran un ajuste comparable.
+
+<br> Podemos observar que los valores obtenidos con nuestros métodos de optimización numérica son muy cercanos a los obtenidos con la solución analítica de **lm()**, lo que valida la eficacia de los algoritmos implementados.
 
 ## Conclusiones
-En este trabajo, hemos aplicado modelos lineales y algoritmos de optimización para predecir el precio de venta de casas en el barrio de Boedo, en base a la superficie cubierta. Utilizamos dos métodos de optimización: Luus-Jaakola y gradiente descendente. Ambos métodos convergieron a soluciones similares, confirmando la efectividad de estos algoritmos en la optimización de funciones convexas.
+
+En este trabajo, hemos aplicado modelos lineales y algoritmos de optimización para predecir el precio de venta de casas en el barrio de Boedo, en base a la superficie cubierta.
+
+Utilizamos dos métodos de optimización: **Luus-Jaakola** y **gradiente descendente**. Ambos métodos convergieron a soluciones similares, confirmando la efectividad de estos algoritmos en la optimización de funciones convexas.
 
 El modelo lineal simple utilizado demostró ser adecuado para capturar la relación entre la superficie cubierta y el precio. Sin embargo, para mejorar el modelo, podríamos considerar incluir otras variables, como el fondo, la cantidad de habitaciones, o características del barrio.
 
