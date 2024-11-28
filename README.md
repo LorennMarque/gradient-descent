@@ -1,11 +1,8 @@
-<center>
 # Análisis de Modelos Lineales y Algoritmos de Optimización en Datos de Propiedades
-### Lorenzo Marquesini, Agustín Orue, Juan Cruz Chierasco, Marco Di Sario
-#### Noviembre 28, 2024
-</center>
+#### Fecha: Noviembre 28, 2024
 
-
-Este repositorio contiene el trabajo final del curso de [nombre del curso o materia], donde analizamos la relación entre la superficie cubierta y el precio de venta de propiedades en el barrio de Boedo, Ciudad de Buenos Aires. Utilizamos modelos lineales y algoritmos de optimización para ajustar los datos y evaluar su efectividad.
+---
+Este repositorio contiene el trabajo final del curso de Introducción a los Problemas Básicos de Administración y Economía, donde analizamos la relación entre la superficie cubierta y el precio de venta de propiedades en el barrio de Boedo, Ciudad de Buenos Aires. Utilizamos modelos lineales y algoritmos de optimización para ajustar los datos y evaluar su efectividad.
 
 ## Tabla de Contenidos  
 1. [Introducción](#introducción)  
@@ -58,6 +55,15 @@ El objetivo de este proyecto es explorar el uso de métodos de optimización y m
 - Se recomienda incluir más variables para mejorar el modelo, como fondo, cantidad de habitaciones y características del barrio.  
 
 ---
+
+### Autores:
+- Lorenzo Marquesini
+- Agustín Orue
+- Juan Cruz Chierasco
+- Marco Di Sario
+
+---
+
 
 ## Licencia  
 Este proyecto se distribuye bajo la Licencia MIT.  
